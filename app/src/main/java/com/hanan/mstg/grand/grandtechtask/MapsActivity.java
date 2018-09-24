@@ -2,6 +2,8 @@ package com.hanan.mstg.grand.grandtechtask;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -9,6 +11,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.hanan.mstg.grand.grandtechtask.models.DirectionsResult;
+import com.hanan.mstg.grand.grandtechtask.network.GoogleMapsApiService;
+
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -42,5 +53,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        getApiResult();
+    }
+
+    public void getApiResult(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("https://maps.googleapis.com/maps/api/directions/")
+                .build();
+
+
+        GoogleMapsApiService mapsApiService = retrofit.create(GoogleMapsApiService.class);
+        Observable<DirectionsResult> directions = mapsApiService.getDirections("29.951181,%2030.912111",
+                "30.025940,%2031.015215", getString(R.string.google_maps_key));
+
+        directions.subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(directionResults -> {
+                    Log.d("DirectionsResult", Html.fromHtml(directionResults.getRoutes()
+                            .get(0).getLegs()
+                            .get(0).getSteps()
+                            .get(12).getHtmlInstructions()).toString());
+                });
     }
 }
