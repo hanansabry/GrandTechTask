@@ -7,6 +7,8 @@ public class Step {
     Location startLocation;
     @SerializedName("end_location")
     Location endLocation;
+    @SerializedName("polyline")
+    PolyLine polyLine;
     @SerializedName("html_instructions")
     String htmlInstructions;
 
@@ -24,6 +26,14 @@ public class Step {
 
     public void setEndLocation(Location endLocation) {
         this.endLocation = endLocation;
+    }
+
+    public PolyLine getPolyLine() {
+        return polyLine;
+    }
+
+    public void setPolyLine(PolyLine polyLine) {
+        this.polyLine = polyLine;
     }
 
     public String getHtmlInstructions() {
