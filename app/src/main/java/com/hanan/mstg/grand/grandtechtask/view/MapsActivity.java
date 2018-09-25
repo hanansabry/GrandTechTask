@@ -1,4 +1,4 @@
-package com.hanan.mstg.grand.grandtechtask;
+package com.hanan.mstg.grand.grandtechtask.view;
 
 import android.app.FragmentTransaction;
 import android.graphics.Color;
@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -16,6 +17,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.hanan.mstg.grand.grandtechtask.BuildConfig;
+import com.hanan.mstg.grand.grandtechtask.R;
 import com.hanan.mstg.grand.grandtechtask.models.DirectionsResult;
 import com.hanan.mstg.grand.grandtechtask.models.Leg;
 import com.hanan.mstg.grand.grandtechtask.models.Location;
@@ -48,6 +51,8 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
     @Inject
     public Service service;
     private GoogleMap mMap;
+    String origin = "29.951181,%2030.912111";
+    String destination = "30.025940,%2031.015215";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +66,7 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
         mapFragment.getMapAsync(this);
 
         MapsPresenter presenter = new MapsPresenter(service, this);
-        presenter.getDirectionResult("29.951181,%2030.912111",
-                "30.025940,%2031.015215", getString(R.string.google_maps_key));
+        presenter.getDirectionResult(origin, destination, getString(R.string.google_maps_key));
     }
 
 
@@ -78,10 +82,6 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-    }
-
-    public String convertHtmlTextToPlaintext(String htmlText) {
-        return Html.fromHtml(htmlText).toString();
     }
 
     @Override
@@ -125,17 +125,15 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
                         .title(leg.getEndAddress()));
 
+
+                //mark stop points
                 String polyline;
                 for (Step step : steps) {
                     Location startLocation = step.getStartLocation();
                     Location endLocation = step.getEndLocation();
                     polyline = step.getPolyLine().getPoints();
 
-                    //add marker for step start location
-//                                LatLng stepStart = new LatLng(startLocation.getLat(), startLocation.getLng());
-//                                mMap.addMarker(new MarkerOptions().position(stepStart).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
-//
-//                                //add marker for step end location
+                    //add marker for step end location
                     LatLng stepEnd = new LatLng(endLocation.getLat(), endLocation.getLng());
                     mMap.addMarker(new MarkerOptions().position(stepEnd).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
 
@@ -145,6 +143,7 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
 
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start, 12));
 
+                //draw the route
                 if (routeList.size() > 0) {
                     PolylineOptions rectLine = new PolylineOptions().width(5).color(Color.BLUE);
 
@@ -159,7 +158,13 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
     }
 
     public void showFragmentDialog(View view) {
+        ProgressBar progressBar = findViewById(R.id.progress_bar);
         new AsyncTask<String, Void, String>() {
+            @Override
+            protected void onPreExecute() {
+                progressBar.setVisibility(View.VISIBLE);
+            }
+
             @Override
             protected String doInBackground(String... strings) {
                 String response = null;
@@ -190,6 +195,7 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
 
             @Override
             protected void onPostExecute(String response) {
+                progressBar.setVisibility(View.INVISIBLE);
                 Document document = Jsoup.parse(response);
                 Element titleElement = document.select("title").get(0);
                 Element contentElement = document.select("p").get(0);
@@ -198,7 +204,7 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
                 AboutUsDialogFragment.newInstance(titleElement.html(), contentElement.html()).show(ft, "aboutus");
             }
-        }.execute("http://35.227.87.35/androidtask/api/aboutus");
+        }.execute(BuildConfig.ABOUTUS_CALL);
     }
 
     public String convertInputStreamToString(InputStream inputStream, Charset charset) throws IOException {
@@ -214,4 +220,9 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
 
         return stringBuilder.toString();
     }
+
+    public String convertHtmlTextToPlaintext(String htmlText) {
+        return Html.fromHtml(htmlText).toString();
+    }
 }
+

@@ -1,4 +1,4 @@
-package com.hanan.mstg.grand.grandtechtask;
+package com.hanan.mstg.grand.grandtechtask.view;
 
 import android.app.DialogFragment;
 import android.os.Bundle;
@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.hanan.mstg.grand.grandtechtask.R;
 
 public class AboutUsDialogFragment extends DialogFragment {
     private static final String TITLE = "TITLE";

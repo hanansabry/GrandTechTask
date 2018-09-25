@@ -1,8 +1,9 @@
-package com.hanan.mstg.grand.grandtechtask.network;
+package com.hanan.mstg.grand.grandtechtask.di;
 
 import com.hanan.mstg.grand.grandtechtask.BuildConfig;
+import com.hanan.mstg.grand.grandtechtask.network.GoogleMapsApiService;
+import com.hanan.mstg.grand.grandtechtask.network.Service;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -12,7 +13,7 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 @Module
-public class NetworkModule {
+public class ActivityModule {
 
     @Provides
     @Singleton

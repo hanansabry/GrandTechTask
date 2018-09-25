@@ -1,6 +1,5 @@
 package com.hanan.mstg.grand.grandtechtask.mvp;
 
-import com.hanan.mstg.grand.grandtechtask.models.DirectionsResult;
 import com.hanan.mstg.grand.grandtechtask.network.Service;
 
 import rx.Subscription;
@@ -20,10 +19,12 @@ public class MapsPresenter {
     public void getDirectionResult(String origin, String dest, String key){
         view.showWait();
 
-        service.getDirections(directionsResult -> {
+        Subscription subscription = service.getDirections(directionsResult -> {
             view.removeWait();
             view.getDirectionsResultSuccess(directionsResult);
         }, origin, dest, key);
+
+        subscriptions.add(subscription);
     }
 
     public void onStop(){

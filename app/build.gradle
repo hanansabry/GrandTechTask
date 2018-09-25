@@ -10,6 +10,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "BASEURL", "\"https://maps.googleapis.com/maps/api/directions/\""
+        buildConfigField "String", "ABOUTUS_CALL", "\"http://35.227.87.35/androidtask/api/aboutus\""
     }
     buildTypes {
         release {
