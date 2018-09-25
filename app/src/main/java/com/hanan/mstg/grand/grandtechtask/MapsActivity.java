@@ -2,7 +2,6 @@ package com.hanan.mstg.grand.grandtechtask;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.text.Html;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -18,31 +17,36 @@ import com.hanan.mstg.grand.grandtechtask.models.Leg;
 import com.hanan.mstg.grand.grandtechtask.models.Location;
 import com.hanan.mstg.grand.grandtechtask.models.Route;
 import com.hanan.mstg.grand.grandtechtask.models.Step;
-import com.hanan.mstg.grand.grandtechtask.network.GoogleMapsApiService;
+import com.hanan.mstg.grand.grandtechtask.mvp.MapsPresenter;
+import com.hanan.mstg.grand.grandtechtask.mvp.MapsView;
+import com.hanan.mstg.grand.grandtechtask.network.Service;
 import com.hanan.mstg.grand.grandtechtask.util.RouteDecode;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import javax.inject.Inject;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsView {
 
+    @Inject
+    public Service service;
     private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        getActivityComponent().inject(this);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        MapsPresenter presenter = new MapsPresenter(service, this);
+        presenter.getDirectionResult("29.951181,%2030.912111",
+                "30.025940,%2031.015215", getString(R.string.google_maps_key));
     }
 
 
@@ -58,96 +62,165 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        getApiResult();
     }
 
-    public void getApiResult() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("https://maps.googleapis.com/maps/api/directions/")
-                .build();
-
-
-        GoogleMapsApiService mapsApiService = retrofit.create(GoogleMapsApiService.class);
-        Observable<DirectionsResult> directions = mapsApiService.getDirections("29.951181,%2030.912111",
-                "30.025940,%2031.015215", getString(R.string.google_maps_key));
-
+//    public void getApiResult() {
+//
+//        Retrofit retrofit = new Retrofit.Builder()
+//                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+//                .addConverterFactory(GsonConverterFactory.create())
+//                .baseUrl("https://maps.googleapis.com/maps/api/directions/")
+//                .build();
+//
+//
+//        GoogleMapsApiService mapsApiService = retrofit.create(GoogleMapsApiService.class);
+//        Observable<DirectionsResult> directions = mapsApiService.getDirections("29.951181,%2030.912111",
+//                "30.025940,%2031.015215", getString(R.string.google_maps_key));
+//
+////        directions.subscribeOn(Schedulers.newThread())
+////                .observeOn(AndroidSchedulers.mainThread())
+////                .subscribe(directionResults -> {
+////                    Log.d("DirectionsResult", Html.fromHtml(directionResults.getRoutes()
+////                            .get(0).getLegs()
+////                            .get(0).getSteps()
+////                            .get(12).getHtmlInstructions()).toString());
+////                });
 //        directions.subscribeOn(Schedulers.newThread())
 //                .observeOn(AndroidSchedulers.mainThread())
 //                .subscribe(directionResults -> {
-//                    Log.d("DirectionsResult", Html.fromHtml(directionResults.getRoutes()
-//                            .get(0).getLegs()
-//                            .get(0).getSteps()
-//                            .get(12).getHtmlInstructions()).toString());
+//                    ArrayList<LatLng> routeList = new ArrayList<>();
+//                    if (directionResults.getRoutes().size() > 0) {
+//                        ArrayList<LatLng> decodelist;
+//                        Route route = directionResults.getRoutes().get(0);
+//                        if (route.getLegs().size() > 0) {
+//                            Leg leg = route.getLegs().get(0);
+//                            List<Step> steps = leg.getSteps();
+//                            Location legStartLocation = leg.getStartLocation();
+//                            Location legEndLocation = leg.getEndLocation();
+//
+//                            //mark the start address on the map with green color
+//                            LatLng start = new LatLng(legStartLocation.getLat(), legStartLocation.getLng());
+//                            mMap.addMarker(new MarkerOptions()
+//                                    .position(start)
+//                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+//                                    .title(leg.getStartAddress()));
+//
+//                            //mark the end address on the map with blue color
+//                            LatLng end = new LatLng(legEndLocation.getLat(), legEndLocation.getLng());
+//                            mMap.addMarker(new MarkerOptions()
+//                                    .position(end)
+//                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
+//                                    .title(leg.getEndAddress()));
+//
+//                            String polyline;
+//                            for (Step step : steps){
+//                                Location startLocation = step.getStartLocation();
+//                                Location endLocation = step.getEndLocation();
+//                                polyline = step.getPolyLine().getPoints();
+//
+//                                //add marker for step start location
+////                                LatLng stepStart = new LatLng(startLocation.getLat(), startLocation.getLng());
+////                                mMap.addMarker(new MarkerOptions().position(stepStart).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
+////
+////                                //add marker for step end location
+//                                LatLng stepEnd = new LatLng(endLocation.getLat(), endLocation.getLng());
+//                                mMap.addMarker(new MarkerOptions().position(stepEnd).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
+//
+//                                decodelist = RouteDecode.decodePoly(polyline);
+//                                routeList.addAll(decodelist);
+//                            }
+//
+//                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,12));
+//
+//                            if(routeList.size()>0){
+//                                PolylineOptions rectLine = new PolylineOptions().width(5).color(Color.BLUE);
+//
+//                                for (int i = 0; i < routeList.size(); i++) {
+//                                    rectLine.add(routeList.get(i));
+//                                }
+//                                // Adding route on the map
+//                                mMap.addPolyline(rectLine);
+//                            }
+//                        }
+//                    }
 //                });
-        directions.subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(directionResults -> {
-                    ArrayList<LatLng> routeList = new ArrayList<>();
-                    if (directionResults.getRoutes().size() > 0) {
-                        ArrayList<LatLng> decodelist;
-                        Route route = directionResults.getRoutes().get(0);
-                        if (route.getLegs().size() > 0) {
-                            Leg leg = route.getLegs().get(0);
-                            List<Step> steps = leg.getSteps();
-                            Location legStartLocation = leg.getStartLocation();
-                            Location legEndLocation = leg.getEndLocation();
+//    }
 
-                            //mark the start address on the map with green color
-                            LatLng start = new LatLng(legStartLocation.getLat(), legStartLocation.getLng());
-                            mMap.addMarker(new MarkerOptions()
-                                    .position(start)
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                                    .title(leg.getStartAddress()));
+    public String convertHtmlTextToPlaintext(String htmlText){
+        return Html.fromHtml(htmlText).toString();
+    }
 
-                            //mark the end address on the map with blue color
-                            LatLng end = new LatLng(legEndLocation.getLat(), legEndLocation.getLng());
-                            mMap.addMarker(new MarkerOptions()
-                                    .position(end)
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
-                                    .title(leg.getEndAddress()));
+    @Override
+    public void showWait() {
 
-                            String polyline;
-                            for (Step step : steps){
-                                Location startLocation = step.getStartLocation();
-                                Location endLocation = step.getEndLocation();
-                                polyline = step.getPolyLine().getPoints();
+    }
 
-                                //add marker for step start location
+    @Override
+    public void removeWait() {
+
+    }
+
+    @Override
+    public void onFailure(String appErrorMessage) {
+
+    }
+
+    @Override
+    public void getDirectionsResultSuccess(DirectionsResult directionsResult) {
+        ArrayList<LatLng> routeList = new ArrayList<>();
+        if (directionsResult.getRoutes().size() > 0) {
+            ArrayList<LatLng> decodelist;
+            Route route = directionsResult.getRoutes().get(0);
+            if (route.getLegs().size() > 0) {
+                Leg leg = route.getLegs().get(0);
+                List<Step> steps = leg.getSteps();
+                Location legStartLocation = leg.getStartLocation();
+                Location legEndLocation = leg.getEndLocation();
+
+                //mark the start address on the map with green color
+                LatLng start = new LatLng(legStartLocation.getLat(), legStartLocation.getLng());
+                mMap.addMarker(new MarkerOptions()
+                        .position(start)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                        .title(leg.getStartAddress()));
+
+                //mark the end address on the map with blue color
+                LatLng end = new LatLng(legEndLocation.getLat(), legEndLocation.getLng());
+                mMap.addMarker(new MarkerOptions()
+                        .position(end)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
+                        .title(leg.getEndAddress()));
+
+                String polyline;
+                for (Step step : steps){
+                    Location startLocation = step.getStartLocation();
+                    Location endLocation = step.getEndLocation();
+                    polyline = step.getPolyLine().getPoints();
+
+                    //add marker for step start location
 //                                LatLng stepStart = new LatLng(startLocation.getLat(), startLocation.getLng());
 //                                mMap.addMarker(new MarkerOptions().position(stepStart).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
 //
 //                                //add marker for step end location
-                                LatLng stepEnd = new LatLng(endLocation.getLat(), endLocation.getLng());
-                                mMap.addMarker(new MarkerOptions().position(stepEnd).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
+                    LatLng stepEnd = new LatLng(endLocation.getLat(), endLocation.getLng());
+                    mMap.addMarker(new MarkerOptions().position(stepEnd).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
 
-                                decodelist = RouteDecode.decodePoly(polyline);
-                                routeList.addAll(decodelist);
-                            }
+                    decodelist = RouteDecode.decodePoly(polyline);
+                    routeList.addAll(decodelist);
+                }
 
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,12));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,12));
 
-                            if(routeList.size()>0){
-                                PolylineOptions rectLine = new PolylineOptions().width(5).color(Color.BLUE);
+                if(routeList.size()>0){
+                    PolylineOptions rectLine = new PolylineOptions().width(5).color(Color.BLUE);
 
-                                for (int i = 0; i < routeList.size(); i++) {
-                                    rectLine.add(routeList.get(i));
-                                }
-                                // Adding route on the map
-                                mMap.addPolyline(rectLine);
-                            }
-                        }
+                    for (int i = 0; i < routeList.size(); i++) {
+                        rectLine.add(routeList.get(i));
                     }
-                });
-    }
-
-    public String convertHtmlTextToPlaintext(String htmlText){
-        return Html.fromHtml(htmlText).toString();
+                    // Adding route on the map
+                    mMap.addPolyline(rectLine);
+                }
+            }
+        }
     }
 }
