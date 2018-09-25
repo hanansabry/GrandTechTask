@@ -27,6 +27,7 @@ dependencies {
     implementation fileTree(include: ['*.ja    Ar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
+    implementation 'org.jsoup:jsoup:1.10.2'
     //retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.0.2'
     implementation 'com.squareup.retrofit2:converter-gson:2.0.2'
@@ -36,6 +37,7 @@ dependencies {
     implementation 'io.reactivex:rxandroid:1.2.1'
     implementation 'io.reactivex:rxjava:1.1.6'
 
+    //dagger 2
     implementation 'com.google.dagger:dagger-android:2.17'
     implementation 'com.google.dagger:dagger-android-support:2.17' // if you use the support libraries
     annotationProcessor 'com.google.dagger:dagger-android-processor:2.17'

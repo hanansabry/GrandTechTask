@@ -1,12 +1,12 @@
 package com.hanan.mstg.grand.grandtechtask;
 
-import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -26,6 +26,18 @@ import com.hanan.mstg.grand.grandtechtask.mvp.MapsView;
 import com.hanan.mstg.grand.grandtechtask.network.Service;
 import com.hanan.mstg.grand.grandtechtask.util.RouteDecode;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,89 +80,7 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
         mMap = googleMap;
     }
 
-//    public void getApiResult() {
-//
-//        Retrofit retrofit = new Retrofit.Builder()
-//                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-//                .addConverterFactory(GsonConverterFactory.create())
-//                .baseUrl("https://maps.googleapis.com/maps/api/directions/")
-//                .build();
-//
-//
-//        GoogleMapsApiService mapsApiService = retrofit.create(GoogleMapsApiService.class);
-//        Observable<DirectionsResult> directions = mapsApiService.getDirections("29.951181,%2030.912111",
-//                "30.025940,%2031.015215", getString(R.string.google_maps_key));
-//
-////        directions.subscribeOn(Schedulers.newThread())
-////                .observeOn(AndroidSchedulers.mainThread())
-////                .subscribe(directionResults -> {
-////                    Log.d("DirectionsResult", Html.fromHtml(directionResults.getRoutes()
-////                            .get(0).getLegs()
-////                            .get(0).getSteps()
-////                            .get(12).getHtmlInstructions()).toString());
-////                });
-//        directions.subscribeOn(Schedulers.newThread())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(directionResults -> {
-//                    ArrayList<LatLng> routeList = new ArrayList<>();
-//                    if (directionResults.getRoutes().size() > 0) {
-//                        ArrayList<LatLng> decodelist;
-//                        Route route = directionResults.getRoutes().get(0);
-//                        if (route.getLegs().size() > 0) {
-//                            Leg leg = route.getLegs().get(0);
-//                            List<Step> steps = leg.getSteps();
-//                            Location legStartLocation = leg.getStartLocation();
-//                            Location legEndLocation = leg.getEndLocation();
-//
-//                            //mark the start address on the map with green color
-//                            LatLng start = new LatLng(legStartLocation.getLat(), legStartLocation.getLng());
-//                            mMap.addMarker(new MarkerOptions()
-//                                    .position(start)
-//                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-//                                    .title(leg.getStartAddress()));
-//
-//                            //mark the end address on the map with blue color
-//                            LatLng end = new LatLng(legEndLocation.getLat(), legEndLocation.getLng());
-//                            mMap.addMarker(new MarkerOptions()
-//                                    .position(end)
-//                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA))
-//                                    .title(leg.getEndAddress()));
-//
-//                            String polyline;
-//                            for (Step step : steps){
-//                                Location startLocation = step.getStartLocation();
-//                                Location endLocation = step.getEndLocation();
-//                                polyline = step.getPolyLine().getPoints();
-//
-//                                //add marker for step start location
-////                                LatLng stepStart = new LatLng(startLocation.getLat(), startLocation.getLng());
-////                                mMap.addMarker(new MarkerOptions().position(stepStart).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
-////
-////                                //add marker for step end location
-//                                LatLng stepEnd = new LatLng(endLocation.getLat(), endLocation.getLng());
-//                                mMap.addMarker(new MarkerOptions().position(stepEnd).title(convertHtmlTextToPlaintext(step.getHtmlInstructions())));
-//
-//                                decodelist = RouteDecode.decodePoly(polyline);
-//                                routeList.addAll(decodelist);
-//                            }
-//
-//                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,12));
-//
-//                            if(routeList.size()>0){
-//                                PolylineOptions rectLine = new PolylineOptions().width(5).color(Color.BLUE);
-//
-//                                for (int i = 0; i < routeList.size(); i++) {
-//                                    rectLine.add(routeList.get(i));
-//                                }
-//                                // Adding route on the map
-//                                mMap.addPolyline(rectLine);
-//                            }
-//                        }
-//                    }
-//                });
-//    }
-
-    public String convertHtmlTextToPlaintext(String htmlText){
+    public String convertHtmlTextToPlaintext(String htmlText) {
         return Html.fromHtml(htmlText).toString();
     }
 
@@ -196,7 +126,7 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
                         .title(leg.getEndAddress()));
 
                 String polyline;
-                for (Step step : steps){
+                for (Step step : steps) {
                     Location startLocation = step.getStartLocation();
                     Location endLocation = step.getEndLocation();
                     polyline = step.getPolyLine().getPoints();
@@ -213,9 +143,9 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
                     routeList.addAll(decodelist);
                 }
 
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start,12));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start, 12));
 
-                if(routeList.size()>0){
+                if (routeList.size() > 0) {
                     PolylineOptions rectLine = new PolylineOptions().width(5).color(Color.BLUE);
 
                     for (int i = 0; i < routeList.size(); i++) {
@@ -229,11 +159,59 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
     }
 
     public void showFragmentDialog(View view) {
-        String title = "About Us";
-        String content = "Grand Technology, a subsidiary of Mohammed Saif Thabet Group, was established in 2006 as a next-generation digital solutions company by a team of professionals, passionate about providing latest technology and regional expertise in the field of communications, and information technology to help our clients design for the future while evolving their existing businesses.   Grand Technology has come a long way to be recognized as one of the leading solutions and content providers in Yemen.</p>\\r\\n";
-        //show aboutus dialog
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        AboutUsDialogFragment.newInstance(title, content).show(ft, "aboutus");
+        new AsyncTask<String, Void, String>() {
+            @Override
+            protected String doInBackground(String... strings) {
+                String response = null;
+                try {
+                    URL url = new URL(strings[0]);
 
+                    //create the url connection
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.setDoOutput(true);
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setRequestMethod("POST");
+
+                    int statusCode = connection.getResponseCode();
+                    if (statusCode == 200) {
+
+                        InputStream inputStream = new BufferedInputStream(connection.getInputStream());
+
+                        response = convertInputStreamToString(inputStream, Charset.forName("utf-8"));
+                        Log.d("aboutus", response);
+
+                    }
+                } catch (java.io.IOException e) {
+                    e.printStackTrace();
+                }
+                return response;
+            }
+
+            @Override
+            protected void onPostExecute(String response) {
+                Document document = Jsoup.parse(response);
+                Element titleElement = document.select("title").get(0);
+                Element contentElement = document.select("p").get(0);
+
+                //show aboutus dialog
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                AboutUsDialogFragment.newInstance(titleElement.html(), contentElement.html()).show(ft, "aboutus");
+            }
+        }.execute("http://35.227.87.35/androidtask/api/aboutus");
+    }
+
+    public String convertInputStreamToString(InputStream inputStream, Charset charset) throws IOException {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        String line = null;
+
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, charset))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }
+
+        return stringBuilder.toString();
     }
 }
