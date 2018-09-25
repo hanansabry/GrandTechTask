@@ -1,8 +1,12 @@
 package com.hanan.mstg.grand.grandtechtask;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -222,5 +226,14 @@ public class MapsActivity extends BaseApp implements OnMapReadyCallback, MapsVie
                 }
             }
         }
+    }
+
+    public void showFragmentDialog(View view) {
+        String title = "About Us";
+        String content = "Grand Technology, a subsidiary of Mohammed Saif Thabet Group, was established in 2006 as a next-generation digital solutions company by a team of professionals, passionate about providing latest technology and regional expertise in the field of communications, and information technology to help our clients design for the future while evolving their existing businesses.   Grand Technology has come a long way to be recognized as one of the leading solutions and content providers in Yemen.</p>\\r\\n";
+        //show aboutus dialog
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        AboutUsDialogFragment.newInstance(title, content).show(ft, "aboutus");
+
     }
 }
